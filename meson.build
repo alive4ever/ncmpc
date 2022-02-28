@@ -49,6 +49,7 @@ endif
 
 conf.set('HAVE_LOCALE_T', enable_locale and cc.has_header_symbol('locale.h', 'locale_t'))
 conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv'))
+iconv_dep = dependency('iconv', required: false)
 
 async_connect = get_option('async_connect')
 conf.set('ENABLE_ASYNC_CONNECT', async_connect)
@@ -413,6 +414,7 @@ ncmpc = executable('ncmpc',
     curses_dep,
     lirc_dep,
     libmpdclient_dep,
+    iconv_dep,
   ],
   install: true
 )
