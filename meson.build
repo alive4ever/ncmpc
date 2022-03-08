@@ -49,11 +49,11 @@ endif
 
 conf.set('HAVE_LOCALE_T', enable_locale and cc.has_header_symbol('locale.h', 'locale_t'))
 if enable_locale
-  conf.set('HAVE_ICONV', cc.has_function('iconv'))
   iconv_dep = dependency('iconv', required: false)
   if not iconv_dep.found()
     iconv_dep = cc.find_library('iconv', required: false)
   endif
+  conf.set('HAVE_ICONV', cc.has_function('iconv', dependencies: iconv_dep))
 endif
 
 async_connect = get_option('async_connect')
