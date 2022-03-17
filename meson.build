@@ -52,10 +52,16 @@ if meson.version().version_compare('>= 0.60')
   iconv_dep = dependency('iconv', required: false)
 else
   iconv_dep = cc.find_library('iconv', required: false)
-  cc.links('''#include <iconv.h>
-  int main() {
-  iconv_open("","");
-  }''', dependencies: iconv_dep)
+  message('linking iconv snippet...')
+  iconv_linking_test = cc.links('''#include <iconv.h>
+    int main() {
+    iconv_open("","");
+    }''', dependencies: iconv_dep)
+  if iconv_linking_test
+    message('iconv linked successfully')
+  else
+    message('iconv linking test failed')
+  endif
 endif
 conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv', dependencies: iconv_dep))
 
