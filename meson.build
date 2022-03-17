@@ -48,7 +48,12 @@ if enable_nls
 endif
 
 conf.set('HAVE_LOCALE_T', enable_locale and cc.has_header_symbol('locale.h', 'locale_t'))
-conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv'))
+if meson.version().version_compare('>= 0.60')
+  iconv_dep = dependency('iconv', required: false)
+else
+  iconv_dep = cc.find_library('iconv', required: false)
+endif
+conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv', dependencies: iconv_dep))
 
 async_connect = get_option('async_connect')
 conf.set('ENABLE_ASYNC_CONNECT', async_connect)
@@ -410,6 +415,7 @@ ncmpc = executable('ncmpc',
     thread_dep,
     event_dep,
     pcre_dep,
+    iconv_dep,
     curses_dep,
     lirc_dep,
     libmpdclient_dep,
