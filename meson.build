@@ -48,19 +48,28 @@ if enable_nls
 endif
 
 conf.set('HAVE_LOCALE_T', enable_locale and cc.has_header_symbol('locale.h', 'locale_t'))
+iconv_open_snippet = '''#include <iconv.h>
+    int main() {
+    iconv_open("","");
+    }'''
 if meson.version().version_compare('>= 0.60')
   iconv_dep = dependency('iconv', required: false)
 else
-  iconv_dep = cc.find_library('iconv', required: false)
+  iconv_dep = dependency('', required: false)
   message('linking iconv snippet...')
-  iconv_linking_test = cc.links('''#include <iconv.h>
-    int main() {
-    iconv_open("","");
-    }''', dependencies: iconv_dep)
-  if iconv_linking_test
-    message('iconv linked successfully')
+  iconv_nodep_test = cc.links(iconv_open_snippet)
+  if iconv_nodep_test
+    message('iconv linked successfully without iconv_dep')
   else
     message('iconv linking test failed')
+    message('Retrying with iconv_dep')
+    iconv_dep = cc.find_library('iconv', required: false)
+    iconv_dep_test = cc.links(iconv_open_snippet, dependencies: iconv_dep)
+    if iconv_dep_test
+      message('iconv linked successfully with iconv_dep')
+    else
+      message('unable to link iconv, giving up')
+    endif
   endif
 endif
 conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv', dependencies: iconv_dep))
