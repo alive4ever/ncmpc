@@ -54,25 +54,16 @@ iconv_open_snippet = '''#include <iconv.h>
     }'''
 if meson.version().version_compare('>= 0.60')
   iconv_dep = dependency('iconv', required: false)
+  iconv_found = iconv_dep.found()
 else
   iconv_dep = dependency('', required: false)
-  message('linking iconv snippet...')
-  iconv_nodep_test = cc.links(iconv_open_snippet)
-  if iconv_nodep_test
-    message('iconv linked successfully without iconv_dep')
-  else
-    message('iconv linking test failed')
-    message('Retrying with iconv_dep')
+  iconv_found = cc.links(iconv_open_snippet, name: 'iconv_open')
+  if not iconv_found
     iconv_dep = cc.find_library('iconv', required: false)
-    iconv_dep_test = cc.links(iconv_open_snippet, dependencies: iconv_dep)
-    if iconv_dep_test
-      message('iconv linked successfully with iconv_dep')
-    else
-      message('unable to link iconv, giving up')
-    endif
+    iconv_found = cc.links(iconv_open_snippet, dependencies: iconv_dep, name: 'iconv_open')
   endif
 endif
-conf.set('HAVE_ICONV', enable_locale and cc.has_function('iconv', dependencies: iconv_dep))
+conf.set('HAVE_ICONV', enable_locale and iconv_found)
 
 async_connect = get_option('async_connect')
 conf.set('ENABLE_ASYNC_CONNECT', async_connect)
