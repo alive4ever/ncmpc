@@ -48,19 +48,21 @@ if enable_nls
 endif
 
 conf.set('HAVE_LOCALE_T', enable_locale and cc.has_header_symbol('locale.h', 'locale_t'))
-iconv_open_snippet = '''#include <iconv.h>
-    int main() {
-    iconv_open("","");
-    }'''
-if meson.version().version_compare('>= 0.60')
-  iconv_dep = dependency('iconv', required: false)
-  iconv_found = iconv_dep.found()
-else
-  iconv_dep = dependency('', required: false)
-  iconv_found = cc.links(iconv_open_snippet, name: 'iconv_open')
-  if not iconv_found
-    iconv_dep = cc.find_library('iconv', required: false)
-    iconv_found = cc.links(iconv_open_snippet, dependencies: iconv_dep, name: 'iconv_open')
+iconv_dep = dependency('', required: false)
+if enable_locale
+  iconv_open_snippet = '''#include <iconv.h>
+      int main() {
+      iconv_open("","");
+      }'''
+  if meson.version().version_compare('>= 0.60')
+    iconv_dep = dependency('iconv', required: false)
+    iconv_found = iconv_dep.found()
+  else
+    iconv_found = cc.links(iconv_open_snippet, name: 'iconv_open')
+    if not iconv_found
+      iconv_dep = cc.find_library('iconv', required: false)
+      iconv_found = cc.links(iconv_open_snippet, dependencies: iconv_dep, name: 'iconv_open')
+    endif
   endif
 endif
 conf.set('HAVE_ICONV', enable_locale and iconv_found)
